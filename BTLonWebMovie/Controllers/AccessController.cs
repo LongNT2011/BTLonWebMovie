@@ -1,11 +1,8 @@
 ﻿using APIWebMovie.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Web;
-using Microsoft.AspNetCore.Http;
 using ModelAccess.ViewModel;
 using BTLonWebMovie.Services.API;
 using BTLonWebMovie.Helper;
-using Firebase.Auth;
 
 namespace BTLonWebMovie.Controllers
 {
@@ -27,26 +24,6 @@ namespace BTLonWebMovie.Controllers
             var encryptPassword = XString.ToMD5(userView.Password.Trim());
             userView.Password = encryptPassword;
             var result = _services.RegisterUser(userView);
-            if (result)
-            {
-                Random random = new Random();
-                long otp = random.Next(100000, 1000000);
-                TempData["Email"] = userView.Email;
-                TempData["Otp"] = otp.ToString();
-                var sendmail = new SendEmail()
-                {
-                    Email = userView.Email,
-                    Title = "MovieWeb",
-                    Content = "Hi " + userView.UserName + ", Welcome to Movie, Your OTP: ",
-                    Otp = otp
-                };
-                var resultSendMail = _services.SendEmail(sendmail);
-                if (resultSendMail)
-                {
-                    return RedirectToAction("Verify");
-                }
-                return RedirectToAction("Login");
-            }
             return RedirectToAction("Login");
         }
 
@@ -93,7 +70,7 @@ namespace BTLonWebMovie.Controllers
         {
             if (HttpContext.Session.GetString("Email") == null)
             {
-                var u = db.Users.Where(x => x.Email.Equals(user.Email) && x.PassWord.Equals(XString.ToMD5(user.Password.Trim())) && x.IsVerify && !x.IsDelete).FirstOrDefault();
+                var u = db.Users.Where(x => x.Email.Equals(user.Email) && x.PassWord.Equals(XString.ToMD5(user.Password.Trim())) && !x.IsDelete).FirstOrDefault();
                 if (u != null)
                 {
 
